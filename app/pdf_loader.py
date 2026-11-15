@@ -1,35 +1,16 @@
-"""PDF text extraction with page tracking.
-
-We keep page numbers so cited answers can point to a real page.
-"""
-import tempfile
-import os
-from pypdf import PdfReader
+"""Extract PDF text in memory and preserve source page numbers."""
+from io import BytesIO
 from typing import List, Tuple
 
+from pypdf import PdfReader
 
-def load_pdf(file_bytes: bytes, tmp_path: str | None = None) -> List[Tuple[str, int]]:
-    """Extract text from a PDF, returning (text, page_number) per page.
 
-    Page numbers are 1-indexed for human readability.
-    Empty pages are skipped (scanned PDFs without OCR will return empty).
-    """
-    # if no tmp_path provided; write the bytes to a temp file
-    # this is needed because pypdf works with file paths, not byte streams
-    if tmp_path is None:
-        tmp_path = os.path.join(tempfile.gettempdir(), "_upload.pdf")
-
-    with open(tmp_path, "wb") as f:
-        f.write(file_bytes)
-
-    reader = PdfReader(tmp_path)
+def load_pdf(file_bytes: bytes) -> List[Tuple[str, int]]:
+    """Return nonempty (text, one-based page) pairs without a shared temp file."""
+    reader = PdfReader(BytesIO(file_bytes))
     pages: List[Tuple[str, int]] = []
-
-    #reader.pages is a list-like object — each element is a PageObject representing one page of the PDF.
-    for i, page in enumerate(reader.pages, start=1):
-        text = page.extract_text() or ""
-        text = text.strip()
+    for number, page in enumerate(reader.pages, start=1):
+        text = (page.extract_text() or "").strip()
         if text:
-            pages.append((text, i))
-
+            pages.append((text, number))
     return pages

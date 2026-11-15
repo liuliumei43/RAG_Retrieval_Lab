@@ -13,7 +13,10 @@ and works offline. Mention this in the README.
 """
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
-from sentence_transformers import SentenceTransformer
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 import numpy as np
 
 CHUNK_SIZE = 500
@@ -30,13 +33,14 @@ class Chunk:
     page: int
 
 
-_model: Optional[SentenceTransformer] = None
+_model: Optional["SentenceTransformer"] = None
 
 
-def get_embed_model() -> SentenceTransformer:
+def get_embed_model() -> "SentenceTransformer":
     """Lazy-load the embedding model. First call downloads ~80MB."""
     global _model
     if _model is None:
+        from sentence_transformers import SentenceTransformer
         _model = SentenceTransformer(EMBED_MODEL_NAME)
     return _model
 

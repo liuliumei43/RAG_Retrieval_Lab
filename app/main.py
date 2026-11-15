@@ -58,7 +58,6 @@ def _save_turn(session_id: Optional[str], user_msg: str, assistant_msg: str) -> 
     if len(history) > max_messages:
         _sessions[session_id] = history[-max_messages:]
 
-    print(_sessions)  # Debug: print the current session history
     return session_id
 
 
@@ -217,7 +216,7 @@ def query_stream(req: QueryRequest) -> StreamingResponse:
     if not retrieved:
         sid = _save_turn(req.session_id, req.question, "I couldn't find that in the document.")
         def empty_stream() -> Iterator[str]:
-            yield f"data: {json.dumps({'token': 'I couldn\'t find that in the document.'})}\n\n"
+            yield "data: " + json.dumps({"token": "I couldn't find that in the document."}) + "\n\n"
             yield f"data: {json.dumps({'sources': [], 'session_id': sid})}\n\n"
         return StreamingResponse(empty_stream(), media_type="text/event-stream")
 

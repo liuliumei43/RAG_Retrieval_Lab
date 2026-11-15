@@ -25,3 +25,5 @@ dev = ["pytest>=8.0", "httpx>=0.27"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+addopts = "-m 'not live'"
+markers = ["live: needs downloaded models and a configured LLM API; may incur charges"]

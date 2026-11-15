@@ -2,6 +2,8 @@
 import pytest
 from tests.conftest import load_eval_questions
 
+pytestmark = pytest.mark.live
+
 questions = load_eval_questions()
 
 

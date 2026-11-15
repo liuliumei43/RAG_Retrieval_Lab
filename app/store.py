@@ -70,7 +70,13 @@ class VectorStore:
         bm25_ranking: List[int] = []
         if self.bm25 and query_text:
             bm25_scores = self.bm25.get_scores(_tokenize(query_text))
-            bm25_ranking = np.argsort(bm25_scores)[::-1][:top_k_fetch].tolist()
+            # Zero-score documents provide no lexical ranking evidence.
+            # Keep positive BM25 matches only, so unrelated queries fall
+            # back to the dense ranking instead of arbitrary zero-score ties.
+            bm25_ranking = [
+                int(idx) for idx in np.argsort(bm25_scores)[::-1]
+                if bm25_scores[idx] > 0
+            ][:top_k_fetch]
 
         # --- Reciprocal Rank Fusion ---
         rrf_scores: dict[int, float] = {}

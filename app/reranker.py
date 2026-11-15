@@ -12,22 +12,25 @@ fact-table rows).
 Model: cross-encoder/ms-marco-MiniLM-L-6-v2 — ~80MB, CPU-friendly, trained
 on MS MARCO passage ranking.
 """
-import math
 from typing import List, Optional
 
-from sentence_transformers import CrossEncoder
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sentence_transformers import CrossEncoder
 
 from app.store import Retrieval
 
 RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
-_reranker: Optional[CrossEncoder] = None
+_reranker: Optional["CrossEncoder"] = None
 
 
-def get_reranker() -> CrossEncoder:
+def get_reranker() -> "CrossEncoder":
     """Lazy-load the cross-encoder. First call downloads ~80MB."""
     global _reranker
     if _reranker is None:
+        from sentence_transformers import CrossEncoder
         _reranker = CrossEncoder(RERANKER_MODEL_NAME)
     return _reranker
 
@@ -35,7 +38,7 @@ def get_reranker() -> CrossEncoder:
 def rerank(query: str, retrievals: List[Retrieval], top_k: int) -> List[Retrieval]:
     """Rerank with guaranteed slots for top first-stage results.
 
-    - Top ceil(top_k / 2) from first-stage are kept (guaranteed slots).
+    - Top top_k - 1 from first-stage are kept (guaranteed slots).
     - The cross-encoder picks the remaining slots from all other candidates.
     """
     if not retrievals:
